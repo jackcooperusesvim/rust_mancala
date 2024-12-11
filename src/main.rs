@@ -5,7 +5,7 @@ use tokio;
 
 #[tokio::main]
 async fn main() {
-    let depth = 31;
+    let depth = 11;
     println!("Board with depth of {}", depth);
     let start_tree_build = Instant::now();
     let mut sboard = MancalaGameNode::default(MancalaBoard::starting_board());

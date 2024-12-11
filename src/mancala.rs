@@ -69,7 +69,7 @@ impl MancalaBoard {
         }
     }
     pub fn generate_legit_turns(&self) -> Vec<BoardSpace> {
-        (0..SPACES_PER_PLAYER - 1)
+        (0..SPACES_PER_PLAYER)
             .map(|space_num| BoardSpace {
                 player: self.player_to_move,
                 num: space_num,
