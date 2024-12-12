@@ -136,7 +136,7 @@ impl MancalaBoard {
 
         let mut dumped = false;
         while marbles >= 1 {
-            if space.num == 0 && !dumped {
+            if space.num == 0 && self.player_to_move != space.player && !dumped {
                 self.mancalas[space.player.to_u()] += 1;
                 dumped = true;
             } else {
@@ -150,8 +150,9 @@ impl MancalaBoard {
         if self.spaces[space.player.to_u()][space.num] == 1 {
             self.mancalas[space.player.to_u()] +=
                 self.spaces[space.player.next().to_u()][SPACES_PER_PLAYER - 1 - space.num];
-
             self.spaces[space.player.next().to_u()][SPACES_PER_PLAYER - 1 - space.num] = 0;
+        } else {
+            self.player_to_move = self.player_to_move.next();
         }
     }
 
@@ -256,7 +257,7 @@ impl MancalaGameNode {
         if self.utility == None && self.children.is_none() {
             self.utility = Some(self.board.mancalas[1] as isize - self.board.mancalas[0] as isize);
             if self.terminal {
-                println!("{:?}", self);
+                //println!("{:?}", self);
                 self.solved = true;
             }
             //match self.board.player_to_move {
