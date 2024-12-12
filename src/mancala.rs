@@ -1,4 +1,3 @@
-use async_recursion::async_recursion;
 use core::array::from_fn;
 use std::{cmp::Ordering, ops::DerefMut};
 
@@ -212,8 +211,7 @@ impl MancalaGameNode {
         }
     }
 
-    #[async_recursion]
-    pub async fn build_trees(&mut self, limit: usize) {
+    pub fn build_trees(&mut self, limit: usize) {
         self.make_babies(limit);
         //self.board.render_simple();
 
@@ -222,7 +220,7 @@ impl MancalaGameNode {
             match self.children.as_mut() {
                 Some(children) => {
                     for child in children {
-                        child.deref_mut().build_trees(limit).await;
+                        child.deref_mut().build_trees(limit);
                     }
                 }
                 None => {}
@@ -230,24 +228,7 @@ impl MancalaGameNode {
         }
     }
 
-    //pub async fn build_trees_async(&mut self, limit: usize) {
-    //    self.make_babies(limit);
-    //
-    //    if self.terminal && self.children.is_none() {
-    //    } else {
-    //        match &mut self.children {
-    //            Some(children) => {
-    //                for mut child in children {
-    //                    spawn_blocking(move || child.get_mut().unwrap().build_trees(limit)).await;
-    //                }
-    //            }
-    //            None => {}
-    //        };
-    //    }
-    //}
-
-    #[async_recursion]
-    pub async fn evaluate_self_worth_from_children(&mut self) {
+    pub fn evaluate_self_worth_from_children(&mut self) {
         //println!(
         //    "term:{},util:{:?},children.is_none:{}",
         //    self.terminal,
@@ -269,7 +250,7 @@ impl MancalaGameNode {
             match self.children.as_mut() {
                 Some(children) => {
                     for child in children {
-                        child.deref_mut().evaluate_self_worth_from_children().await
+                        child.deref_mut().evaluate_self_worth_from_children()
                     }
                 }
                 None => {}
