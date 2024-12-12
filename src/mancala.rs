@@ -1,14 +1,12 @@
-use async_recursion::async_recursion;
 use core::array::from_fn;
+use rayon::iter::IntoParallelIterator;
+use rayon::iter::IntoParallelRefMutIterator;
+use rayon::iter::ParallelIterator;
 use std::{cmp::Ordering, ops::DerefMut};
-
-//enum BoardTransformation {
-//    None,
-//    FlipSides { old_player_deltas: (isize, isize) },
-//}
 
 const SPACES_PER_PLAYER: usize = 6;
 const MARBLES_PER_SPACE: usize = 4;
+
 #[derive(Clone, Debug, PartialEq, Eq, Copy)]
 pub enum Player {
     PlayerOne,
@@ -212,8 +210,7 @@ impl MancalaGameNode {
         }
     }
 
-    #[async_recursion]
-    pub async fn build_trees(&mut self, limit: usize) {
+    pub fn build_trees(&mut self, limit: usize) {
         self.make_babies(limit);
         //self.board.render_simple();
 
@@ -221,33 +218,16 @@ impl MancalaGameNode {
         } else {
             match self.children.as_mut() {
                 Some(children) => {
-                    for child in children {
-                        child.deref_mut().build_trees(limit).await;
-                    }
+                    children
+                        .par_iter_mut()
+                        .for_each(|child| child.deref_mut().build_trees(limit));
                 }
                 None => {}
             };
         }
     }
 
-    //pub async fn build_trees_async(&mut self, limit: usize) {
-    //    self.make_babies(limit);
-    //
-    //    if self.terminal && self.children.is_none() {
-    //    } else {
-    //        match &mut self.children {
-    //            Some(children) => {
-    //                for mut child in children {
-    //                    spawn_blocking(move || child.get_mut().unwrap().build_trees(limit)).await;
-    //                }
-    //            }
-    //            None => {}
-    //        };
-    //    }
-    //}
-
-    #[async_recursion]
-    pub async fn evaluate_self_worth_from_children(&mut self) {
+    pub fn evaluate_self_worth_from_children(&mut self) {
         //println!(
         //    "term:{},util:{:?},children.is_none:{}",
         //    self.terminal,
@@ -268,9 +248,9 @@ impl MancalaGameNode {
             //Update children utility
             match self.children.as_mut() {
                 Some(children) => {
-                    for child in children {
-                        child.deref_mut().evaluate_self_worth_from_children().await
-                    }
+                    children
+                        .into_par_iter()
+                        .for_each(|child| child.deref_mut().evaluate_self_worth_from_children());
                 }
                 None => {}
             };
