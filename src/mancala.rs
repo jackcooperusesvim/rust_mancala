@@ -2,17 +2,11 @@ use core::array::from_fn;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::IntoParallelRefMutIterator;
 use rayon::iter::ParallelIterator;
-use rayon::join;
-use rayon::spawn;
 use std::{cmp::Ordering, ops::DerefMut};
-
-//enum BoardTransformation {
-//    None,
-//    FlipSides { old_player_deltas: (isize, isize) },
-//}
 
 const SPACES_PER_PLAYER: usize = 6;
 const MARBLES_PER_SPACE: usize = 4;
+
 #[derive(Clone, Debug, PartialEq, Eq, Copy)]
 pub enum Player {
     PlayerOne,
@@ -254,9 +248,9 @@ impl MancalaGameNode {
             //Update children utility
             match self.children.as_mut() {
                 Some(children) => {
-                    for child in children {
-                        child.deref_mut().evaluate_self_worth_from_children()
-                    }
+                    children
+                        .into_par_iter()
+                        .for_each(|child| child.deref_mut().evaluate_self_worth_from_children());
                 }
                 None => {}
             };
