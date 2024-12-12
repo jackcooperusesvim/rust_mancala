@@ -1,4 +1,9 @@
 use core::array::from_fn;
+use rayon::iter::IntoParallelIterator;
+use rayon::iter::IntoParallelRefMutIterator;
+use rayon::iter::ParallelIterator;
+use rayon::join;
+use rayon::spawn;
 use std::{cmp::Ordering, ops::DerefMut};
 
 //enum BoardTransformation {
@@ -219,9 +224,9 @@ impl MancalaGameNode {
         } else {
             match self.children.as_mut() {
                 Some(children) => {
-                    for child in children {
-                        child.deref_mut().build_trees(limit);
-                    }
+                    children
+                        .par_iter_mut()
+                        .for_each(|child| child.deref_mut().build_trees(limit));
                 }
                 None => {}
             };
