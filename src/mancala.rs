@@ -13,7 +13,7 @@ pub enum Player {
     PlayerTwo,
 }
 impl Player {
-    fn next(self) -> Self {
+    pub fn next(self) -> Self {
         match self {
             Self::PlayerOne => Self::PlayerTwo,
             Self::PlayerTwo => Self::PlayerOne,
@@ -211,7 +211,9 @@ impl MancalaGameNode {
     }
 
     pub fn build_trees(&mut self, limit: usize) {
-        self.make_babies(limit);
+        if self.children.is_none() {
+            self.make_babies(limit);
+        }
         //self.board.render_simple();
 
         if self.terminal && self.children.is_none() {

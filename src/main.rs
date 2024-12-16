@@ -1,3 +1,4 @@
+pub mod game;
 pub mod mancala;
 use mancala::*;
 use std::time::Instant;
