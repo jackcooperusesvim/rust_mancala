@@ -8,7 +8,10 @@ use std::{cmp::Ordering, ops::DerefMut};
 
 const SPACES_PER_PLAYER: usize = 6;
 const MARBLES_PER_SPACE: usize = 4;
-
+pub enum SimpleError {
+    Success,
+    Failure,
+}
 #[derive(Clone, Debug, PartialEq, Eq, Copy)]
 pub enum Player {
     PlayerOne,
@@ -74,20 +77,20 @@ impl MancalaBoard {
                 player: self.player_to_move,
                 num: space_num,
             })
-            .filter(|turn| self.turn_vibe_check(turn).unwrap_or(false))
+            .filter(|turn| self.turn_vibe_check(turn) == SimpleError::Success)
             .collect()
     }
-    pub fn turn_vibe_check(&self, turn: &BoardSpace) -> Result<bool> {
+    pub fn turn_vibe_check(&self, turn: &BoardSpace) -> SimpleError {
         let space_num: usize = turn.num;
 
-        (turn.player == self.player_to_move
+        if turn.player == self.player_to_move
             && space_num < SPACES_PER_PLAYER
-            && self.spaces[turn.player.to_u()][space_num] != 0)
-            .then(|| true)
-            .ok_or(Box::new(format!(
-                "Turn did not pass the vibe check {:?}",
-                turn
-            )))
+            && self.spaces[turn.player.to_u()][space_num] != 0
+        {
+            SimpleError::Success
+        } else {
+            SimpleError::Failure
+        }
     }
 
     fn next_space(&self, mut space: BoardSpace) -> BoardSpace {
@@ -131,8 +134,10 @@ impl MancalaBoard {
         println!("{p1_str}");
     }
 
-    pub fn apply_turn_ip(&mut self, mut space: BoardSpace) -> Result<()> {
-        self.turn_vibe_check(&space)?;
+    pub fn apply_turn_ip(&mut self, mut space: BoardSpace) -> SimpleError{
+        if let SimpleError::Failure = self.turn_vibe_check(&space) {
+            return SimpleError::Failure
+        }
 
         let mut marbles: usize = self.spaces[space.player.to_u()][space.num];
         self.spaces[space.player.to_u()][space.num] = 0;
@@ -159,7 +164,7 @@ impl MancalaBoard {
         } else {
             self.player_to_move = self.player_to_move.next();
         };
-        Ok(())
+        return SimpleError::Success;
     }
 
     pub fn apply_turn_cp(&self, turn: BoardSpace) -> Self {
@@ -171,8 +176,10 @@ impl MancalaBoard {
 
 impl MancalaGameNode {
     //TODO: WRITE TEST FOR THIS METHOD
-    pub fn move_to_child(&mut self, turn: BoardSpace) -> Result<()> {
-        self.board.apply_turn_ip(turn)?;
+    pub fn move_to_child(&mut self, turn: BoardSpace) -> SimpleError {
+        if self.board.apply_turn_ip(turn) {
+            return SimpleError::;
+        }
 
         let owned_children = self.children.take();
 
