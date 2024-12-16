@@ -2,6 +2,8 @@ use core::array::from_fn;
 use rayon::iter::IntoParallelIterator;
 use rayon::iter::IntoParallelRefMutIterator;
 use rayon::iter::ParallelIterator;
+use std::ops::Deref;
+use std::thread::Result;
 use std::{cmp::Ordering, ops::DerefMut};
 
 const SPACES_PER_PLAYER: usize = 6;
@@ -26,11 +28,11 @@ impl Player {
         }
     }
 
-    fn from_u(i: usize) -> Result<Self, &'static str> {
+    fn from_u(i: usize) -> Result<Player> {
         match i {
             0 => Ok(Player::PlayerOne),
             1 => Ok(Player::PlayerTwo),
-            _ => Err("Not a Valid Turn"),
+            _ => Err(Box::new("Not a Valid Turn")),
         }
     }
 }
@@ -40,7 +42,7 @@ pub struct BoardSpace {
     pub num: usize,
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct MancalaBoard {
     pub player_to_move: Player,
     pub spaces: [[usize; SPACES_PER_PLAYER]; 2],
@@ -72,15 +74,20 @@ impl MancalaBoard {
                 player: self.player_to_move,
                 num: space_num,
             })
-            .filter(|turn| self.turn_vibe_check(turn))
+            .filter(|turn| self.turn_vibe_check(turn).unwrap_or(false))
             .collect()
     }
-    pub fn turn_vibe_check(&self, turn: &BoardSpace) -> bool {
+    pub fn turn_vibe_check(&self, turn: &BoardSpace) -> Result<bool> {
         let space_num: usize = turn.num;
 
-        turn.player == self.player_to_move
+        (turn.player == self.player_to_move
             && space_num < SPACES_PER_PLAYER
-            && self.spaces[turn.player.to_u()][space_num] != 0
+            && self.spaces[turn.player.to_u()][space_num] != 0)
+            .then(|| true)
+            .ok_or(Box::new(format!(
+                "Turn did not pass the vibe check {:?}",
+                turn
+            )))
     }
 
     fn next_space(&self, mut space: BoardSpace) -> BoardSpace {
@@ -124,8 +131,8 @@ impl MancalaBoard {
         println!("{p1_str}");
     }
 
-    pub fn apply_turn_ip(&mut self, mut space: BoardSpace) {
-        assert!(self.turn_vibe_check(&space));
+    pub fn apply_turn_ip(&mut self, mut space: BoardSpace) -> Result<()> {
+        self.turn_vibe_check(&space)?;
 
         let mut marbles: usize = self.spaces[space.player.to_u()][space.num];
         self.spaces[space.player.to_u()][space.num] = 0;
@@ -151,7 +158,8 @@ impl MancalaBoard {
             self.spaces[space.player.next().to_u()][SPACES_PER_PLAYER - 1 - space.num] = 0;
         } else {
             self.player_to_move = self.player_to_move.next();
-        }
+        };
+        Ok(())
     }
 
     pub fn apply_turn_cp(&self, turn: BoardSpace) -> Self {
@@ -162,6 +170,24 @@ impl MancalaBoard {
 }
 
 impl MancalaGameNode {
+    //TODO: WRITE TEST FOR THIS METHOD
+    pub fn move_to_child(&mut self, turn: BoardSpace) -> Result<()> {
+        self.board.apply_turn_ip(turn)?;
+
+        let owned_children = self.children.take();
+
+        if let Some(mut children) = owned_children {
+            while let Some(child) = children.pop() {
+                if child.deref().board == self.board {
+                    *self = *child
+                }
+            }
+            return Err(Box::new("No child matched that turn"));
+        };
+
+        self.children = owned_children;
+        Err(Box::new("This Node has no children"))
+    }
     pub fn apply_turn_cp(&self, turn: BoardSpace) -> Self {
         MancalaGameNode {
             turn: self.turn + 1,
