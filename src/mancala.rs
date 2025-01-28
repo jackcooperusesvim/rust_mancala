@@ -3,7 +3,6 @@ use rayon::iter::IntoParallelIterator;
 use rayon::iter::IntoParallelRefMutIterator;
 use rayon::iter::ParallelIterator;
 use std::ops::Deref;
-use std::thread::Result;
 use std::{cmp::Ordering, ops::DerefMut};
 
 const SPACES_PER_PLAYER: usize = 6;
@@ -30,13 +29,13 @@ impl Player {
         }
     }
 
-    fn from_u(i: usize) -> Result<Player> {
-        match i {
-            0 => Ok(Player::PlayerOne),
-            1 => Ok(Player::PlayerTwo),
-            _ => Err(Box::new("Not a Valid Turn")),
-        }
-    }
+    //fn from_u(i: usize) -> Result<Player> {
+    //    match i {
+    //        0 => Ok(Player::PlayerOne),
+    //        1 => Ok(Player::PlayerTwo),
+    //        _ => Err(Box::new("Not a Valid Turn")),
+    //    }
+    //}
 }
 #[derive(Clone, Debug)]
 pub struct BoardSpace {
