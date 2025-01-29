@@ -1,6 +1,6 @@
 #Rustcala
 
-This is a simple mancala engine, which also contains a breadth-first limited-depth search algorithm to play the game. I am writing this to learn more about Rust, and 
+This is a simple mancala engine, which also contains a breadth-first depth-limited search algorithm to play the game. I am writing this to learn more about Rust, and this project will also be incorporated with my Rust-ML-Library which I am writing specifically to play this game.
 
 ## Relevant Structs
  - BoardSpace 
