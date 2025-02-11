@@ -1,6 +1,6 @@
 # Rustcala
 
-This is a simple mancala engine, which also contains a breadth-first depth-limited search algorithm to play the game. I am writing this to learn more about Rust, and this project will also be incorporated with my Machine Learning Library, also written in Rust.
+This is a simple mancala engine, which also contains a breadth-first depth-limited [MiniMax search algorithm](https://www.geeksforgeeks.org/mini-max-algorithm-in-artificial-intelligence/) to play the game. I am writing this to learn more about Rust, and this project will also be incorporated with my Machine Learning Library, also written in Rust.
 
 ## Relevant Structs
  - BoardSpace 
